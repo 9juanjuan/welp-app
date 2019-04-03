@@ -10,13 +10,18 @@
 </head>
 <body>
     <h1>Login to Welp</h1>
+    
+    <h2 class= "alert alert-primary"
+     ${ 
+        message ? `visible` : `invisible` }
+        > ${message}</h2>
     <form
         action="/login"
         method="POST"
     >
             <div class="form-group">
               <label for="exampleInputEmail1">Email address</label>
-              <input name="email" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+              <input value ="${email}" name="email" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
               <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
             </div>
             <div class="form-group">
