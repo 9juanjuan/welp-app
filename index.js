@@ -1,4 +1,6 @@
 const express = require('express'); // Bring in the express library.
+const es6Renderer = require('express-es6-template-engine');
+
 const app = express();              // Create a new express app.
 const es6Renderer= require('express-es6-template-engine');
 // Require my session and session storage
@@ -22,6 +24,7 @@ app.use(session({
 const querystring = require('querystring');
 // const hostname = '127.0.0.1';
 
+
 const port = 3000;
 const Restaurant = require('./models/restaurants');
 const User = require('./models/user');
@@ -39,6 +42,48 @@ app.use(express.urlencoded({extended:true}));
 // Import my model class
 app.get('/login', async (req , res) => {
     // res.send('this is the login form');
+
+// require my session and session storage modules
+// This module lets express track users
+// as they go from page to page.
+const session = require('express-session');
+
+// Import the session storage module, and wire it up
+// to the session module.
+const FileStore = require('session-file-store')(session);
+
+// tell express to use the session modules
+app.use(session({
+    store: new FileStore(),  // no options for now
+    secret: 'ljahfkadbfkcahsvcfkasgbfkasjgfksa'
+}));
+
+
+
+// const hostname = '127.0.0.1';
+const port = 3000;
+
+
+// Import my model class
+const Restaurant = require('./models/restaurants');
+const User = require('./models/user');
+
+app.engine('html', es6Renderer); // introduce them:
+// "hey app, meet es6Renderer. they speak html"
+app.set('view engine', 'html'); // tell express to use as its view engine the thing that speaks html
+
+app.set('views', 'views'); // tell express where to find the view files. (The second argument is the name of the directory where my template files will live.)
+
+// Configure express to use the built-in middleware
+// that can deal with form data.
+app.use(express.urlencoded({ extended: true }));
+
+
+// When they ask for the login page, send the login form.
+app.get('/login', (req, res) => {
+    // send them the form!!!
+    // res.send('this is not the login form');
+
     res.render('login-form', {
         locals: {
             email: '',
@@ -47,35 +92,38 @@ app.get('/login', async (req , res) => {
     });
 });
 
-app.post('/login', async (req , res) => {
-    console.log(req.body)
-    console.log(req.body.email)
-    console.log(req.body.password)
-    // res.send('yolo')
+
+// When they submit the form, process the form data.
+app.post('/login', async (req, res) => {
+    console.log(req.body.email);
+    console.log(req.body.password);
+
     const theUser = await User.getByEmail(req.body.email);
-    console.log(theUser)
-    theUser.setPassword("SpotsSpotsSpots")
-    await theUser.save();
-    if (theUser.checkPassword(req.body.password)) {
-        //Save the users id to the session
+    const passwordIsCorrect = theUser.checkPassword(req.body.password);
+    if (passwordIsCorrect) {
+        // Save the user's id to the session.
         req.session.user = theUser.id;
-        // Make sure the session is saved before we redirect
+        // Make sure the session is saved
+        // before we redirect.
         req.session.save(() => {
-            res.redirect('/dashboard')
-        })
-       console.log( 'did the if thing')
+            res.redirect('/dashboard');
+        });
     } else {
-        console.log('did the else thing')
+        // send the form back, but with the email already filled out.
         res.render('login-form', {
             locals: {
                 email: req.body.email,
-                message: 'Password incorrect. Please try again'
+                message: 'Password incorrect. Please try again.'
             }
-        })
-        // send the form back, but with the email already filled out. 
+        });
     }
-
 });
+app.get('/dashboard', (req, res) => {
+    console.log(`The user's id is: ${req.session.user}`);
+    res.send('welcome to your welp dashboard');
+});
+
+
 app.get('/restaurants', async (req, res) => {
     const allRestaurants = await Restaurant.getAll();    
     // const restaurantJSON = JSON.stringify(allRestaurants);    
