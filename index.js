@@ -41,6 +41,11 @@ app.get('/restaurants', async (req, res) => {
     res.json(allRestaurants);
 });
 
+app.get('/dashboard', async (req, res) => {
+    res.send('Welcome to your welp dashboard')
+})
+
+
 app.get('/users', async (req, res) => {
     const allUsers = await User.getAll();
     res.json(allUsers);
